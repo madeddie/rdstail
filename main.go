@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/litl/rdstail/src"
+	"github.com/madeddie/rdstail/src"
 	"github.com/urfave/cli"
 )
 
