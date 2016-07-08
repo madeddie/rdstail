@@ -54,22 +54,20 @@ func parseDB(c *cli.Context) string {
 	return db
 }
 
-func watchOutput(lines string) error {
-	fmt.Print(lines)
-	return nil
-}
-
 func watch(c *cli.Context) error {
 	r := setupRDS(c)
 	db := parseDB(c)
 	rate := parseRate(c)
+	tries := c.Int("tries")
 
 	stop := make(chan struct{})
 	go signalListen(stop)
 
-	err := rdstail.Watch(r, db, rate, watchOutput, stop)
+	err := rdstail.Watch(r, db, rate, tries, func(lines string) error {
+		fmt.Print(lines)
+		return nil
+	}, stop)
 
-	//fie(err)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -80,6 +78,7 @@ func papertrail(c *cli.Context) error {
 	r := setupRDS(c)
 	db := parseDB(c)
 	rate := parseRate(c)
+	tries := c.Int("tries")
 	papertrailHost := c.String("papertrail")
 	if papertrailHost == "" {
 		fie(errors.New("-papertrail required"))
@@ -95,9 +94,8 @@ func papertrail(c *cli.Context) error {
 	stop := make(chan struct{})
 	go signalListen(stop)
 
-	err := rdstail.FeedPapertrail(r, db, rate, papertrailHost, appName, hostname, stop)
+	err := rdstail.FeedPapertrail(r, db, rate, tries, papertrailHost, appName, hostname, stop)
 
-	//fie(err)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -109,7 +107,7 @@ func tail(c *cli.Context) error {
 	db := parseDB(c)
 	numLines := int64(c.Int("lines"))
 	err := rdstail.Tail(r, db, numLines)
-	//fie(err)
+
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
@@ -165,8 +163,13 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:  "rate, r",
-					Value: "3s",
+					Value: "10s",
 					Usage: "rds log polling rate",
+				},
+				cli.IntFlag{
+					Name:  "tries, t",
+					Value: 30,
+					Usage: "rds log polling retry rate",
 				},
 			},
 		},
@@ -178,8 +181,13 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "rate, r",
-					Value: "3s",
+					Value: "10s",
 					Usage: "rds log polling rate",
+				},
+				cli.IntFlag{
+					Name:  "tries, t",
+					Value: 30,
+					Usage: "rds log polling retry rate",
 				},
 			},
 		},
