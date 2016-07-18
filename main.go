@@ -124,14 +124,15 @@ func main() {
 	app.Version = "0.1.0"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "instance, i",
-			Usage: "name of the db instance in rds [required]",
+			Name:   "instance, i",
+			Usage:  "name of the db instance in rds [required]",
+			EnvVar: "RDS_INSTANCE",
 		},
 		cli.StringFlag{
 			Name:   "region",
 			Value:  "us-east-1",
 			Usage:  "AWS region",
-			EnvVar: "AWS_REGION",
+			EnvVar: "AWS_DEFAULT_REGION",
 		},
 		cli.IntFlag{
 			Name:  "max-retries",

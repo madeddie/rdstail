@@ -1,0 +1,18 @@
+FROM golang:1.6-alpine
+
+RUN apk --no-cache add git
+RUN mkdir -p /go/src/app
+WORKDIR /go/src/rdstail
+
+COPY . /go/src/rdstail
+RUN CGO_ENABLED=1 GOOS=linux go get -v -ldflags "-s -extldflags \"-static\""
+EXPORT /go/bin/rdstail
+
+FROM registry.lgi.io/libertyglobal/alpine:3.4
+
+ENV AWS_DEFAULT_REGION=eu-central-1
+IMPORT rdstail /bin/rdstail
+
+ENTRYPOINT ["/bin/rdstail"]
+CMD ["watch"]
+TAG rdstail:latest
