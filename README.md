@@ -2,20 +2,28 @@ RDSTail
 =======
 
 RDSTail is a tool for tailing or streaming RDS log files.  Supports piping to papertrail.
+This is a fork from [litl/rdstail](https://github.com/litl/rdstail)
+
+Changes are 
+* Updated location of cli library and fixing a warning associated with newer version of said lib.
+* RDS instance id can now be given as env var, mostly for ease of use with Docker.
+* Polling tries made configurable, if there are no new loglines in (tries * rate) seconds rdstail goes to look for a newer log.
+* Tries and rate set to more sensible defaults for a quiet PosgreSQL instance, only logging once every 5 minutes (10 * 30 == 300 seconds)
+* Added Rockerfile (see: https://github.com/grammarly/rocker)
 
 Installation
 ============
 
 For now, you must compile from source.  Install [Go](https://golang.org).
 
-    » go get github.com/litl/rdstail
+    » go get github.com/madeddie/rdstail
 
 
 Usage
 =====
 
 ```
-» ./rdstail -h
+» rdstail -h
 
 NAME:
    rdstail - Reads AWS RDS logs
@@ -23,61 +31,63 @@ NAME:
     AWS credentials are taken from an ~/.aws/credentials file or the env vars AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
 
 USAGE:
-   ./rdstail [global options] command [command options] [arguments...]
-   
+   rdstail [global options] command [command options] [arguments...]
+
 VERSION:
    0.1.0
-   
+
 COMMANDS:
-   papertrail   stream logs into papertrail
-   watch    stream logs to stdout
-   tail     tail the last N lines
-   help, h  Shows a list of commands or help for one command
-   
+     papertrail  stream logs into papertrail
+     watch       stream logs to stdout
+     tail        tail the last N lines
+     help, h     Shows a list of commands or help for one command
+
 GLOBAL OPTIONS:
-   --instance, -i   name of the db instance in rds [required]
-   --region "us-east-1" AWS region [$AWS_REGION]
-   --max-retries "10"   maximium number of retries for rds requests
-   --help, -h       show help
-   --version, -v    print the version
+   --instance value, -i value  name of the db instance in rds [required] [$RDS_INSTANCE]
+   --region value              AWS region (default: "us-east-1") [$AWS_DEFAULT_REGION]
+   --max-retries value         maximium number of retries for rds requests (default: 10)
+   --help, -h                  show help
+   --version, -v               print the version
    
 ------------------------------------------------------------
-» ./rdstail papertrail -h
+» rdstail papertrail -h
 
 NAME:
-   ./rdstail papertrail - stream logs into papertrail
+   rdstail papertrail - stream logs into papertrail
 
 USAGE:
-   ./rdstail papertrail [command options] [arguments...]
+   rdstail papertrail [command options] [arguments...]
 
 OPTIONS:
-   --papertrail, -p         papertrail host e.g. logs.papertrailapp.com:8888 [required]
-   --app, -a "rdstail"      app name to send to papertrail
-   --hostname "os.Hostname()"   hostname of the client, sent to papertrail
-   --rate, -r "3s"      rds log polling rate
+   --papertrail value, -p value  papertrail host e.g. logs.papertrailapp.com:8888 [required]
+   --app value, -a value         app name to send to papertrail (default: "rdstail")
+   --hostname value              hostname of the client, sent to papertrail (default: "os.Hostname()")
+   --rate value, -r value        rds log polling rate (default: "10s")
+   --tries value, -t value       rds log polling retry rate (default: 30)
    
 ------------------------------------------------------------
-» ./rdstail watch -h
+» rdstail watch -h
 
 NAME:
-   ./rdstail watch - stream logs to stdout
+   rdstail watch - stream logs to stdout
 
 USAGE:
-   ./rdstail watch [command options] [arguments...]
+   rdstail watch [command options] [arguments...]
 
 OPTIONS:
-   --rate, -r "3s"  rds log polling rate
+   --rate value, -r value   rds log polling rate (default: "10s")
+   --tries value, -t value  rds log polling retry rate (default: 30)
    
 ------------------------------------------------------------
-» ./rdstail tail -h
+» rdstail tail -h
 
 NAME:
-   ./rdstail tail - tail the last N lines
+   rdstail tail - tail the last N lines
 
 USAGE:
-   ./rdstail tail [command options] [arguments...]
+   rdstail tail [command options] [arguments...]
 
 OPTIONS:
-   --lines, -n "20" output the last n lines. use 0 for a full dump of the most recent file
+   --lines value, -n value  output the last n lines. use 0 for a full dump of the most recent file (default: 20)
 
 ```
